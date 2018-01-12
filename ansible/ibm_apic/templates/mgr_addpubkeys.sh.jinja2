@@ -1,0 +1,29 @@
+#!/usr/bin/expect -f
+spawn assh -o PubkeyAuthentication=no -o StrictHostKeyChecking=no admin@{{inventory_hostname}}
+proc expect_prompt {} \
+{
+  global spawn_id
+  expect -re {.*/APIConnet>}
+}
+
+set pass [lindex $argv 0] #get password also from command line
+
+set timeout 2
+expect {
+  "Password:" { send "$pass\r"}
+  timeout { puts "timed out waiting for login."; exit 1 }
+}
+
+expect_prompt
+
+send "mgmt authkeys set\r"
+
+expect "Paste public key(s). Press Ctrl-D to save or Ctrl-C to cancel."
+{% for item in ssh_users%}
+send "{{item.key}}\r"
+{% endfor%}
+send "\x04\x04"
+
+expect_prompt
+
+send "exit\r"

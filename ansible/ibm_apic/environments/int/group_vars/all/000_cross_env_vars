@@ -1,0 +1,7 @@
+---
+ansible_user: admin  #APIC uses admin for all functions
+
+#variables for adding public keys
+ssh_users:
+  - name: admin  #always admin on APIC
+    key: "{{ lookup ('file', 'user1.pub')}}"  #these are in the files directory

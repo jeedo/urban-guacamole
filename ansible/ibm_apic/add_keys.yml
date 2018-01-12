@@ -1,0 +1,27 @@
+---
+- name: "Add administrator public keys saved in files/*.pub to all API Managers"
+  hosts: managers
+  gather_facts: False
+  serial: 1
+
+  vars_prompt:
+    - name: "admin_pass"
+      prompt: "Password:"
+
+  tasks:
+    - name: "Generate expect script"
+      template:
+        src: mgr_addpubkeys.sh.jinja2
+        dest: /tmp/mgr_addpubkeys.sh
+        force: yes
+        mode: "a+x"
+      delegate_to: 127.0.0.1
+
+    - name: "Run script against managers"
+      local_action: shell /tmp/mgr_addpubkeys.sh {{admin_pass}}
+
+    - name: "Return SSH set"
+      raw: "mgmt authkeys show"
+      changed_when: False
+      register: result
+    - debug: var=result  
